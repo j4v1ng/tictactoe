@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #e74c3c;
+            --background-color: #f5f5f5;
+            --board-color: #fff;
+            --text-color: #333;
+            --border-color: #ddd;
+            --hover-color: #eee;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background-color: var(--board-color);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background-color: var(--board-color);
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cell:hover {
+            background-color: var(--hover-color);
+        }
+
+        .cell.x {
+            color: var(--primary-color);
+        }
+
+        .cell.o {
+            color: var(--secondary-color);
+        }
+
+        .status {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            min-height: 30px;
+        }
+
+        .status.player-wins {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .status.computer-wins {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .status.draw {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .player-stat .stat-value {
+            color: var(--primary-color);
+        }
+
+        .computer-stat .stat-value {
+            color: var(--secondary-color);
+        }
+
+        .draw-stat .stat-value {
+            color: #f39c12;
+        }
+
+        /* Game mode selector */
+        .game-mode-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            margin: 0 5px;
+            background-color: #95a5a6;
+            opacity: 0.7;
+        }
+
+        .mode-btn.active {
+            background-color: var(--primary-color);
+            opacity: 1;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .win-animation {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .new-move {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        /* Responsive design */
+        @media (max-width: 500px) {
+            .container {
+                padding: 15px;
+            }
+
+            .cell {
+                font-size: 2rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stat-item {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic-Tac-Toe</h1>
+
+        <div class="game-mode-selector">
+            <button id="pvc-btn" class="mode-btn active">Player vs Computer</button>
+            <button id="pvp-btn" class="mode-btn">Player vs Player</button>
+        </div>
+
+        <div class="status" id="status">Your turn! Make a move.</div>
+
+        <div class="game-board" id="game-board">
+            <!-- Cells will be generated by JavaScript -->
+        </div>
+
+        <div class="controls">
+            <button id="new-game-btn">New Game</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item player-stat">
+                <div class="stat-value" id="player-wins">0</div>
+                <div class="stat-label">You</div>
+            </div>
+            <div class="stat-item computer-stat">
+                <div class="stat-value" id="computer-wins">0</div>
+                <div class="stat-label">Computer</div>
+            </div>
+            <div class="stat-item draw-stat">
+                <div class="stat-value" id="draws">0</div>
+                <div class="stat-label">Draws</div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Get initial game state from server
+        let gameState = /*[[${gameState}]]*/ null;
+
+        // DOM elements
+        const gameBoard = document.getElementById('game-board');
+        const statusElement = document.getElementById('status');
+        const newGameBtn = document.getElementById('new-game-btn');
+        const playerWinsElement = document.getElementById('player-wins');
+        const computerWinsElement = document.getElementById('computer-wins');
+        const drawsElement = document.getElementById('draws');
+        const pvcBtn = document.getElementById('pvc-btn');
+        const pvpBtn = document.getElementById('pvp-btn');
+
+        // Game status constants
+        const STATUS = {
+            IN_PROGRESS: 'IN_PROGRESS',
+            PLAYER_WINS: 'PLAYER_WINS',
+            COMPUTER_WINS: 'COMPUTER_WINS',
+            PLAYER1_WINS: 'PLAYER1_WINS',
+            PLAYER2_WINS: 'PLAYER2_WINS',
+            DRAW: 'DRAW'
+        };
+
+        // Game mode constants
+        const GAME_MODE = {
+            PLAYER_VS_COMPUTER: 'PLAYER_VS_COMPUTER',
+            PLAYER_VS_PLAYER: 'PLAYER_VS_PLAYER'
+        };
+
+        // Cell values
+        const CELL = {
+            EMPTY: 'EMPTY',
+            X: 'X',
+            O: 'O'
+        };
+
+        // Initialize the game
+        function initGame() {
+            // Clear the game board
+            gameBoard.innerHTML = '';
+
+            // Create the cells
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 3; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.addEventListener('click', () => makeMove(row, col));
+                    gameBoard.appendChild(cell);
+                }
+            }
+
+            // Update the UI with the current game state
+            updateUI();
+        }
+
+        // Update the UI based on the current game state
+        function updateUI() {
+            if (!gameState) return;
+
+            // Update the board
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                const cellValue = gameState.board[row][col];
+
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+
+                if (cellValue === CELL.X) {
+                    cell.textContent = 'X';
+                    cell.classList.add('x');
+                } else if (cellValue === CELL.O) {
+                    cell.textContent = 'O';
+                    cell.classList.add('o');
+                }
+            });
+
+            // Update the game mode buttons
+            if (gameState.gameMode === GAME_MODE.PLAYER_VS_COMPUTER) {
+                pvcBtn.classList.add('active');
+                pvpBtn.classList.remove('active');
+
+                // Update player vs computer stats
+                document.querySelector('.player-stat .stat-label').textContent = 'You';
+                document.querySelector('.computer-stat .stat-label').textContent = 'Computer';
+            } else {
+                pvpBtn.classList.add('active');
+                pvcBtn.classList.remove('active');
+
+                // Update player vs player stats
+                document.querySelector('.player-stat .stat-label').textContent = 'Player 1';
+                document.querySelector('.computer-stat .stat-label').textContent = 'Player 2';
+            }
+
+            // Update the status
+            updateStatus();
+
+            // Update the stats
+            playerWinsElement.textContent = gameState.gameMode === GAME_MODE.PLAYER_VS_COMPUTER ? 
+                gameState.playerWins : gameState.player1Wins;
+            computerWinsElement.textContent = gameState.gameMode === GAME_MODE.PLAYER_VS_COMPUTER ? 
+                gameState.computerWins : gameState.player2Wins;
+            drawsElement.textContent = gameState.draws;
+        }
+
+        // Update the game status message
+        function updateStatus() {
+            statusElement.className = 'status';
+
+            if (gameState.gameMode === GAME_MODE.PLAYER_VS_COMPUTER) {
+                // Player vs Computer mode
+                switch (gameState.status) {
+                    case STATUS.IN_PROGRESS:
+                        statusElement.textContent = 'Your turn! Make a move.';
+                        break;
+                    case STATUS.PLAYER_WINS:
+                        statusElement.textContent = 'You win! 🎉';
+                        statusElement.classList.add('player-wins');
+                        highlightWinningCells();
+                        break;
+                    case STATUS.COMPUTER_WINS:
+                        statusElement.textContent = 'Computer wins! 😢';
+                        statusElement.classList.add('computer-wins');
+                        highlightWinningCells();
+                        break;
+                    case STATUS.DRAW:
+                        statusElement.textContent = 'It\'s a draw! 🤝';
+                        statusElement.classList.add('draw');
+                        break;
+                }
+            } else {
+                // Player vs Player mode
+                switch (gameState.status) {
+                    case STATUS.IN_PROGRESS:
+                        const currentPlayerText = gameState.currentPlayer === CELL.X ? 'Player 1 (X)' : 'Player 2 (O)';
+                        statusElement.textContent = `${currentPlayerText}'s turn! Make a move.`;
+                        break;
+                    case STATUS.PLAYER1_WINS:
+                        statusElement.textContent = 'Player 1 wins! 🎉';
+                        statusElement.classList.add('player-wins');
+                        highlightWinningCells();
+                        break;
+                    case STATUS.PLAYER2_WINS:
+                        statusElement.textContent = 'Player 2 wins! 🎉';
+                        statusElement.classList.add('computer-wins');
+                        highlightWinningCells();
+                        break;
+                    case STATUS.DRAW:
+                        statusElement.textContent = 'It\'s a draw! 🤝';
+                        statusElement.classList.add('draw');
+                        break;
+                }
+            }
+        }
+
+        // Highlight the winning cells
+        function highlightWinningCells() {
+            // This is a simplified version - in a real implementation, 
+            // we would need to know which cells form the winning line
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                const cellValue = gameState.board[row][col];
+
+                if ((gameState.status === STATUS.PLAYER_WINS && cellValue === CELL.X) ||
+                    (gameState.status === STATUS.COMPUTER_WINS && cellValue === CELL.O) ||
+                    (gameState.status === STATUS.PLAYER1_WINS && cellValue === CELL.X) ||
+                    (gameState.status === STATUS.PLAYER2_WINS && cellValue === CELL.O)) {
+                    cell.classList.add('win-animation');
+                }
+            });
+        }
+
+        // Make a move
+        async function makeMove(row, col) {
+            // Don't allow moves if the game is over
+            if (gameState.status !== STATUS.IN_PROGRESS) {
+                return;
+            }
+
+            try {
+                // Send the move to the server
+                const formData = new FormData();
+                formData.append('row', row);
+                formData.append('col', col);
+
+                const response = await fetch('/api/move', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Update the game state
+                    gameState = await response.json();
+
+                    // Update the UI
+                    updateUI();
+
+                    // Add animation to the new moves
+                    const cells = document.querySelectorAll('.cell');
+                    cells.forEach(cell => {
+                        const cellRow = parseInt(cell.dataset.row);
+                        const cellCol = parseInt(cell.dataset.col);
+
+                        if (cellRow === row && cellCol === col) {
+                            cell.classList.add('new-move');
+                            setTimeout(() => cell.classList.remove('new-move'), 300);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error making move:', error);
+            }
+        }
+
+        // Start a new game
+        async function startNewGame() {
+            try {
+                const response = await fetch('/api/new-game', {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    // Update the game state
+                    gameState = await response.json();
+
+                    // Update the UI
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Error starting new game:', error);
+            }
+        }
+
+        // Set the game mode
+        async function setGameMode(mode) {
+            try {
+                const formData = new FormData();
+                formData.append('mode', mode);
+
+                const response = await fetch('/api/set-game-mode', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Update the game state
+                    gameState = await response.json();
+
+                    // Update the UI
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Error setting game mode:', error);
+            }
+        }
+
+        // Event listeners
+        newGameBtn.addEventListener('click', startNewGame);
+        pvcBtn.addEventListener('click', () => setGameMode(GAME_MODE.PLAYER_VS_COMPUTER));
+        pvpBtn.addEventListener('click', () => setGameMode(GAME_MODE.PLAYER_VS_PLAYER));
+
+        // Initialize the game when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+
+            // If there's no game state, start a new game
+            if (!gameState) {
+                startNewGame();
+            }
+        });
+    </script>
+</body>
+</html>
