@@ -2,6 +2,9 @@
 
 A simple web-based Tic-Tac-Toe game built with Kotlin and Ktor.
 
+[Live demo](https://tictactoe-7v6g.onrender.com)
+> **Note:** The demo is hosted on a free hosting service, so initial loading may be slow. Please be patient.
+
 ## Features
 
 - **Player vs Computer**: Play against a simple AI opponent
