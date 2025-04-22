@@ -37,12 +37,33 @@ This game is built with:
 
 ## Running the Game
 
+### Option 1: Running Locally with Gradle
+
 To run the game locally:
 
 1. Clone the repository
 2. Make sure you have Java and Gradle installed
 3. Run `./gradlew run` from the project root
 4. Open your browser and navigate to `http://localhost:8080`
+
+### Option 2: Running with Docker
+
+To run the game using Docker:
+
+1. Clone the repository
+2. Make sure you have Docker and Docker Compose installed
+3. Run `docker-compose up` from the project root
+4. Open your browser and navigate to `http://localhost:8080`
+
+Alternatively, you can build and run the Docker image directly:
+
+```bash
+# Build the Docker image
+docker build -t tictactoe .
+
+# Run the container
+docker run -p 8080:8080 tictactoe
+```
 
 ## License
 

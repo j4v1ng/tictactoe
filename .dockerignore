@@ -1,0 +1,32 @@
+# Gradle files
+.gradle/
+# Don't exclude build/ completely as we need it for the multi-stage build
+# Instead, exclude specific directories that aren't needed
+build/tmp/
+build/kotlin/
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.settings/
+.project
+.classpath
+
+# Logs
+logs/
+*.log
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Docker files
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Git files
+.git/
+.gitignore
